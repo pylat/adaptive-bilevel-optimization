@@ -24,4 +24,4 @@ julia --project=. download_datasets.jl
 ```
 
 Numerical simulations for a few different problems are contained in subfolders.
-For example, the linear inverse problem with the $\ell_1$ norm as the upper-level cost function can be found [here](https://github.com/pylat/adaptive-proximal-algorithms-bilevel-optimization/tree/master/experiments/logregNormL1). The `runme.jl` file includes the associated simulations. Running the `main()` function will generate the plots in the same subfolder.
+For example, the linear inverse problem with the $\ell_1$ norm as the upper-level cost function can be found [here](https://github.com/pylat/adaptive-proximal-algorithms-bilevel-optimization/tree/master/experiments/logregNormL1). The `runme.jl` file includes the associated simulations. Executing `main()` will generate the plots in the same subfolder.
