@@ -1,8 +1,19 @@
-# Adaptive Proximal Algorithms
+# Adaptive Proximal Algorithms for Convex Bilevel optimization
 
 This repository contains Julia code for the paper
 [AdaBiM: An adaptive proximal gradient method for structured
 convex bilevel optimization](https://arxiv.org/pdf/2305.03559.pdf).
+
+The problems that can be tackled are of the form 
+
+$$
+\begin{aligned}
+    \text{minimize} \quad & f^1(x) + g^1(x) \\
+    \text{subject to} \quad & x \in \arg\min_{w} f^2(w) + g^2(w)
+\end{aligned}
+$$
+
+where $f^1,f^2$ are locally Lipschitz differentiable and $g^1,g^2$ are (possibly) nonsmooth prox-friendly functions. 
 
 Algorithms are implemented [here](./adaptive_bilevel_algorithms.jl).
 
