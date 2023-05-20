@@ -2,7 +2,7 @@
 
 This repository contains Julia code for the paper
 [AdaBiM: An adaptive proximal gradient method for structured
-convex bilevel optimization](https://arxiv.org/pdf/2305.03559.pdf).
+convex bilevel optimization](https://arxiv.org/abs/2305.03559).
 
 The problems that can be tackled are of the form 
 
