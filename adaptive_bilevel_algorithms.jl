@@ -1,7 +1,6 @@
 using Logging
 using LinearAlgebra
 using ProximalCore: prox, Zero 
-# using ProximalOperators: SqrNormL2
 import ProximalCore: prox, prox!
 
 # Utilities.

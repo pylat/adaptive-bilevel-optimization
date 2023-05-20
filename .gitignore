@@ -48,7 +48,9 @@ tex/ResultsSummary/BFinito_merged.tex
 .DS_Store
 
 
+
 # plots 
+*.txt
 experiments/datasets
-experiments/*/*.txt
 experiments/*/plotdata
+experiments/*/*/plotdata

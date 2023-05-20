@@ -13,10 +13,10 @@ julia --project=. download_datasets.jl
 ```
 
 Experiments on a few different problems are contained in subfolders.
-For example, run the linear inverse problem experiments as follows:
+For example, run the linear inverse problem with the $\ell_1$ norm as the upper level cost as follows:
 
 ```
-julia --project=. experiments/linear_inverse/runme.jl
+julia --project=. experiments/LinearInverse/NormL1/runme.jl
 ```
 
 This will generate plots in the same subfolder.
