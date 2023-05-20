@@ -23,11 +23,5 @@ You can download the datasets required in some of the experiments by running:
 julia --project=. download_datasets.jl
 ```
 
-Experiments on a few different problems are contained in subfolders.
-For example, run the linear inverse problem with the $\ell_1$ norm as the upper level cost as follows:
-
-```
-julia --project=. experiments/LinearInverse/NormL1/runme.jl
-```
-
-This will generate plots in the same subfolder.
+Numerical simulations for a few different problems are contained in subfolders.
+For example, the linear inverse problem with the $\ell_1$ norm as the upper-level cost function can be found [here](https://github.com/pylat/adaptive-proximal-algorithms-bilevel-optimization/tree/master/experiments/logregNormL1). The `runme.jl` file includes the associated simulations. Running the `main()` function will generate the plots in the same subfolder.
