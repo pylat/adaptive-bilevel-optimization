@@ -36,11 +36,11 @@ function run_logreg_l2_data(
     g1 = NormL1()
     g2 = Zero()
 
-    
-    obj = obj1(f1, g1)
-    Lf2 = norm(X * X') / (4 * n)  
 
-@info "Getting accurate solution"
+    obj = obj1(f1, g1)
+    Lf2 = norm(X * X') / (4 * n)
+
+    @info "Getting accurate solution"
 
     sol_star, numit, record_fixed = adaptive_bilevel_LS(
         zeros(n),
@@ -53,11 +53,11 @@ function run_logreg_l2_data(
         maxit = maxit * 20,
         record_fn = record_pg,
     )
-    optimum = obj(sol_star) 
+    optimum = obj(sol_star)
     @info "high accuracy sol: $(optimum)"
 
 
-    @info "Running solvers" 
+    @info "Running solvers"
 
     @info "solver with bilevel problem with LS"
 
@@ -75,7 +75,7 @@ function run_logreg_l2_data(
     @info "Bilevel Alg with LS"
     @info "    iterations: $(numit)"
     @info "     objective: $(obj(sol))"
-    
+
     @info "solver with bilevel problem with static stepsize"
 
     sol, numit, record_StaBiM = adaptive_bilevel_static(
@@ -116,7 +116,7 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_res",".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressionres.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -131,7 +131,7 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_cost", ".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressioncost.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -146,15 +146,12 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_gamma", ".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressiongamma.pdf"))
 
     # r = pf
     @info "Exporting plot data"
 
-    save_labels = Dict(
-        "AdaBilevel-LS" => "AdaBilevel-LS",
-        "StaBiM" => "StaBiM",
-    )
+    save_labels = Dict("AdaBilevel-LS" => "AdaBilevel-LS", "StaBiM" => "StaBiM")
 
 
     for k in keys(to_plot)
@@ -163,7 +160,7 @@ function run_logreg_l2_data(
         output = [to_plot[k][:grad_evals_total] abs.(to_plot[k][:objective1] .- optimum)]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n.txt"
-        filepath = joinpath(@__DIR__,"plotdata", "uppercost", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "uppercost", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -177,7 +174,7 @@ function run_logreg_l2_data(
         output = [to_plot[k][:grad_evals_total] max.(1e-14, to_plot[k][:norm_gradf2])]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n.txt"
-        filepath = joinpath(@__DIR__,"plotdata", "loweropt", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "loweropt", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -190,7 +187,7 @@ function run_logreg_l2_data(
         output = [1:d to_plot[k][:gamma]]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n.txt"
-        filepath = joinpath(@__DIR__,"plotdata", "gamma", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "gamma", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -201,19 +198,10 @@ function run_logreg_l2_data(
 end
 
 
-function main(;maxit = 10_000)
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "mushrooms"),
-        maxit = maxit
-    )
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "a5a"),
-        maxit = maxit
-    )
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "phishing"),
-        maxit = maxit
-    )
+function main(; maxit = 10_000)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "mushrooms"), maxit = maxit)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "a5a"), maxit = maxit)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "phishing"), maxit = maxit)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
@@ -254,10 +242,10 @@ end
 
 
 function (S::obj1)(x)
-    y = try 
+    y = try
         nocount(S.f1)(x) + nocount(S.g1)(x)
-    catch e 
+    catch e
         S.f1(x)
-    end 
+    end
     return y
-end 
+end

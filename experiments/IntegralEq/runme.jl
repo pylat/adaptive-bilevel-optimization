@@ -15,22 +15,22 @@ using LaTeXStrings
 pgfplotsx()
 
 
-function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit = 10_000)
+function run_Lin_inverse(functype; m = 20, r = 1e-2, seed = 0, tol = 1e-5, maxit = 10_000)
     @info "Start Linear inverse problem ($functype)"
 
     Random.seed!(seed)
 
-    md = mdopen(functype, m, false) 
+    md = mdopen(functype, m, false)
     A = md.A
     bt = md.b
     xt = md.x
-    n  = size(A,2)
+    n = size(A, 2)
 
     b = A * xt + r * randn(n)
-    
-    DisGrad = FiniteDiff2D((n,n)...)
-    Q1 = DisGrad.D_rows' * DisGrad.D_rows 
-    Q =  Q1 + diagm(0 => ones(n))
+
+    DisGrad = FiniteDiff2D((n, n)...)
+    Q1 = DisGrad.D_rows' * DisGrad.D_rows
+    Q = Q1 + diagm(0 => ones(n))
 
     Lf = opnorm(A)^2
 
@@ -38,12 +38,12 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     f1_BiGSAM = Quadratic(Q, zeros(n))
     f2 = LinearLeastSquares(A, b)
     g1 = SqrNormL2()
-    g2 = IndBox(0,+Inf)
+    g2 = IndBox(0, +Inf)
 
     # preparation for Big SAM
     muf1 = 1 # strong convexity modulus of f1
-    Lf1  = opnorm(Q) # smoothness modulus
-    Lf2 = Lf 
+    Lf1 = opnorm(Q) # smoothness modulus
+    Lf2 = Lf
 
     obj = obj1(f1, g1)
 
@@ -64,17 +64,17 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     @info "high accuracy sol: $(optimum)"
 
 
-    @info "Running solvers" 
-    
+    @info "Running solvers"
+
     @info "solver with bilevel problem with linesearch"
-    
+
     sol, numit, record_Alg1LS = adaptive_bilevel_LS(
         zeros(n),
         f1 = f1,
         f2 = Counting(f2),
         g1 = g1,
         g2 = g2,
-        rule = OurRuleLS(gamma = 10.0/Lf2),
+        rule = OurRuleLS(gamma = 10.0 / Lf2),
         tol = tol,
         maxit = maxit,
         record_fn = record_pg,
@@ -84,7 +84,7 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     @info "     objective: $(obj(sol))"
 
 
-@info "solver with bilevel problem with static stepsize"
+    @info "solver with bilevel problem with static stepsize"
     Lf1_staBiM = opnorm(Array(Q1))
     sol, numit, record_staBiM = adaptive_bilevel_static(
         zeros(n),
@@ -109,8 +109,8 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
         f1 = f1_BiGSAM,
         f2 = Counting(f2),
         g = g2,
-        gamma = 1/Lf2,
-        tau = 2/(Lf1+muf1),
+        gamma = 1 / Lf2,
+        tau = 2 / (Lf1 + muf1),
         tol = tol,
         maxit = maxit,
         record_fn = record_pg,
@@ -123,13 +123,13 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     @info "solver with bilevel problem with Solodov"
 
     record_Solodov = Vector{}(undef, 3)
-    for (i, c) in [(1, 1), (2,10), (3, 100)]
+    for (i, c) in [(1, 1), (2, 10), (3, 100)]
         sol, numit, record_Solodov[i] = backtracking_Solodov(
             zeros(n),
             f1 = f1_BiGSAM,
             f2 = Counting(f2),
             g = g2,
-            gamma0 = c/Lf2, 
+            gamma0 = c / Lf2,
             tol = tol,
             maxit = maxit,
             record_fn = record_pg,
@@ -165,7 +165,7 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_res_", functype,"_.pdf"))
+    savefig(joinpath(@__DIR__, string("convergence_Linverse_res_", functype, "_.pdf")))
 
     plot(
         title = "Quadratic upper level",
@@ -175,12 +175,12 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     for k in keys(to_plot)
         plot!(
             to_plot[k][:grad_evals_total],
-            (abs.(to_plot[k][:objective1] .- optimum)) ./ max(1.0, optimum), 
+            (abs.(to_plot[k][:objective1] .- optimum)) ./ max(1.0, optimum),
             yaxis = :log,
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_cost_", functype, "_.pdf"))
+    savefig(joinpath(@__DIR__, string("convergence_Linverse_cost_", functype, "_.pdf")))
 
     plot(
         title = "Quadratic upper level",
@@ -195,10 +195,10 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_gamma_", functype, "_.pdf"))
+    savefig(joinpath(@__DIR__, string("convergence_Linverse_gamma_", functype, "_.pdf")))
 
     @info "Exporting plot data"
-    
+
     save_labels = Dict(
         "AdaBilevel-LS" => "AdaBilevel-LS",
         "staBiM" => "staBiM",
@@ -211,10 +211,12 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
     for k in keys(to_plot)
         d = length(to_plot[k][:grad_evals_total])
         rr = Int(ceil(d / 80)) # keeping at most 50 data points
-        output = [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./ max(1.0, optimum)]
+        output =
+            [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./
+                                           max(1.0, optimum)]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$(functype)-$m-$n-$(Int(ceil(r*1000))).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "uppercost", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "uppercost", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -228,7 +230,7 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
         output = [to_plot[k][:grad_evals_total] max.(1e-14, to_plot[k][:norm_res])]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$(functype)-$m-$n-$(Int(ceil(r*1000))).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "loweropt", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "loweropt", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -241,7 +243,7 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
         output = [1:d to_plot[k][:gamma]]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$(functype)-$m-$n-$(Int(ceil(r*1000))).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "gamma", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "gamma", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -251,20 +253,11 @@ function run_Lin_inverse(functype; m =20, r = 1e-2, seed = 0, tol = 1e-5, maxit 
 end
 
 
-function main(;m = 1000)
+function main(; m = 1000)
     for r in [1e-2]
-        run_Lin_inverse(
-            "phillips", m = m, r = r, 
-            maxit = 1000, tol = 1e-7
-        )
-        run_Lin_inverse(
-            "foxgood", m = m, r = r,
-            maxit = 2000, tol = 1e-7
-        )
-        run_Lin_inverse(
-            "baart", m = m, r = r,
-            maxit = 500, tol = 1e-7
-        )
+        run_Lin_inverse("phillips", m = m, r = r, maxit = 1000, tol = 1e-7)
+        run_Lin_inverse("foxgood", m = m, r = r, maxit = 2000, tol = 1e-7)
+        run_Lin_inverse("baart", m = m, r = r, maxit = 500, tol = 1e-7)
     end
 end
 
@@ -288,7 +281,7 @@ function gradient(f::LinearLeastSquares, w)
 end
 
 function gradient(f::Quadratic, w)
-    return f.Q*w + f.q , 0.5 * dot(w, f.Q*w) + dot(w,f.q)
+    return f.Q * w + f.q, 0.5 * dot(w, f.Q * w) + dot(w, f.q)
 end
 
 function gradient(f::SqrNormL2, w)
@@ -304,10 +297,10 @@ end
 
 
 function (S::obj1)(x)
-    y = try 
+    y = try
         nocount(S.f1)(x) + nocount(S.g1)(x)
-    catch e 
+    catch e
         S.f1(x)
-    end 
+    end
     return y
-end 
+end

@@ -16,7 +16,7 @@ pgfplotsx()
 
 
 function run_Linverse_sim(; seed = 3, m = 400, n = 1000, pf = 5, tol = 1e-5, maxit = 10_000)
-    @info "Start Lasso"
+    @info "Start linear inverse problem with squared ell2 norm"
 
     Random.seed!(seed)
 
@@ -207,7 +207,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n = 1000, pf = 5, tol = 1e-5, max
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_res", ".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_res.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -222,7 +222,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n = 1000, pf = 5, tol = 1e-5, max
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_cost", ".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_cost.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -237,7 +237,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n = 1000, pf = 5, tol = 1e-5, max
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_gamma", ".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_gamma.pdf"))
 
     r = pf
     @info "Exporting plot data"

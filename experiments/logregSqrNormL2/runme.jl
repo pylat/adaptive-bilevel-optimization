@@ -23,7 +23,7 @@ function run_logreg_l2_data(
     tol = 1e-5,
     maxit = 1000,
 ) where {T}
-    @info "Start L1 Logistic Regression ($filename)"
+    @info "Start L2 Logistic Regression ($filename)"
 
     X, y = load_libsvm_dataset(filename, T, labels = [0.0, 1.0])
 
@@ -37,14 +37,14 @@ function run_logreg_l2_data(
 
     f1_BiGSAM = SqrNormL2()
 
-    
+
     obj = obj1(f1, g1)
     # preparation for Big SAM
     muf1 = 1 # strong convexity modulus of f1_BGSAM
-    Lf1  = 1 # smoothness modulus of f1_BGSAM
-    Lf2 = norm(X)^2 / (4 * n)  
+    Lf1 = 1 # smoothness modulus of f1_BGSAM
+    Lf2 = norm(X)^2 / (4 * n)
 
-@info "Getting accurate solution"
+    @info "Getting accurate solution"
 
     sol_star, numit, record_fixed = adaptive_bilevel_LS(
         zeros(n),
@@ -57,11 +57,11 @@ function run_logreg_l2_data(
         maxit = maxit * 20,
         record_fn = record_pg,
     )
-    optimum = obj(sol_star) 
+    optimum = obj(sol_star)
     @info "high accuracy sol: $(optimum)"
 
 
-    @info "Running solvers" 
+    @info "Running solvers"
 
     @info "solver with bilevel problem with LS"
 
@@ -80,7 +80,7 @@ function run_logreg_l2_data(
     @info "    iterations: $(numit)"
     @info "     objective: $(obj(sol))"
 
-@info "solver with bilevel problem with static stepsize"
+    @info "solver with bilevel problem with static stepsize"
 
     sol, numit, record_staBiM = adaptive_bilevel_static(
         zeros(n),
@@ -104,8 +104,8 @@ function run_logreg_l2_data(
         f1 = f1_BiGSAM,
         f2 = Counting(f2),
         g = g2,
-        gamma = 1/Lf2,
-        tau = 2/(Lf1+muf1),
+        gamma = 1 / Lf2,
+        tau = 2 / (Lf1 + muf1),
         tol = tol,
         maxit = maxit,
         record_fn = record_pg,
@@ -117,13 +117,13 @@ function run_logreg_l2_data(
     @info "solver with bilevel problem with Solodov"
 
     record_Solodov = Vector{}(undef, 3)
-    for (i, c) in [(1, 1), (2,10), (3, 100)]
+    for (i, c) in [(1, 1), (2, 10), (3, 100)]
         sol, numit, record_Solodov[i] = backtracking_Solodov(
             zeros(n),
             f1 = f1_BiGSAM,
             f2 = Counting(f2),
             g = g2,
-            gamma0 = c/Lf2, ###### to test
+            gamma0 = c / Lf2, ###### to test
             tol = tol,
             maxit = maxit,
             record_fn = record_pg,
@@ -159,7 +159,7 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_res",".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressionres.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -174,7 +174,7 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_cost", ".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressioncost.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -189,7 +189,7 @@ function run_logreg_l2_data(
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_gamma", ".pdf"))
+    savefig(joinpath(@__DIR__, "Logistic_Regressiongamma.pdf"))
 
 
     # r = pf
@@ -206,10 +206,12 @@ function run_logreg_l2_data(
     for k in keys(to_plot)
         d = length(to_plot[k][:grad_evals_total])
         rr = Int(ceil(d / 80)) # keeping at most 50 data points
-        output = [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./ max(abs(optimum), 1.0)]
+        output =
+            [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./
+                                           max(abs(optimum), 1.0)]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n.txt"
-        filepath = joinpath(@__DIR__,"plotdata", "uppercost", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "uppercost", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -223,7 +225,7 @@ function run_logreg_l2_data(
         output = [to_plot[k][:grad_evals_total] max.(1e-14, to_plot[k][:norm_gradf2])]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n.txt"
-        filepath = joinpath(@__DIR__,"plotdata", "loweropt", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "loweropt", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -233,19 +235,10 @@ function run_logreg_l2_data(
 end
 
 
-function main(;maxit = 3000)
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "mushrooms"),
-        maxit = maxit
-    )
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "a5a"),
-        maxit = maxit
-    )
-    run_logreg_l2_data(
-        joinpath(@__DIR__, "..", "datasets", "phishing"),
-        maxit = maxit
-    )
+function main(; maxit = 3000)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "mushrooms"), maxit = maxit)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "a5a"), maxit = maxit)
+    run_logreg_l2_data(joinpath(@__DIR__, "..", "datasets", "phishing"), maxit = maxit)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
@@ -287,10 +280,10 @@ end
 
 
 function (S::obj1)(x)
-    y = try 
+    y = try
         nocount(S.f1)(x) + nocount(S.g1)(x)
-    catch e 
+    catch e
         S.f1(x)
-    end 
+    end
     return y
-end 
+end

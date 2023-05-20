@@ -15,14 +15,22 @@ using ProximalOperators: NormL1, SqrNormL2
 pgfplotsx()
 
 
-function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 1e-5, maxit = 10_000)
-    @info "Start Lasso"
+function run_Linverse_sim(;
+    seed = 3,
+    m = 400,
+    n = 1000,
+    pf = 5,
+    r = 40,
+    tol = 1e-5,
+    maxit = 10_000,
+)
+    @info "Start linear inverse problem with ell1 norm"
 
     Random.seed!(seed)
-    
+
     p = n / pf # nonzeros
     rho = 1 # some positive constant controlling how large solution is
-    lam = 1  
+    lam = 1
 
     y_star = rand(m)
     y_star ./= norm(y_star) #y^\star
@@ -44,7 +52,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
             end
         end
     end
-    A = C * diagm(0 => alpha)   
+    A = C * diagm(0 => alpha)
     # generate the primal solution
     x_star = zeros(n)
     for i = 1:n
@@ -61,13 +69,13 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
     g1 = NormL1()
     f2 = LinearLeastSquares(A, b)
     g2 = Zero()
-    
+
     obj = obj1(f1, g1)
     # preparation for Big SAM
     muf1 = 1 # strong convexity modulus of f1_BGSAM
-    Lf2 = Lf 
+    Lf2 = Lf
 
-@info "Getting accurate solution"
+    @info "Getting accurate solution"
 
     sol_star, numit, record_fixed = adaptive_bilevel_LS(
         zeros(n),
@@ -80,11 +88,11 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
         maxit = maxit * 20,
         record_fn = record_pg,
     )
-    optimum = obj(sol_star) 
+    optimum = obj(sol_star)
     @info "high accuracy sol: $(optimum)"
 
 
-    @info "Running solvers" 
+    @info "Running solvers"
 
     @info "solver with bilevel problem with LS"
 
@@ -104,7 +112,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
     @info "     objective: $(obj(sol))"
 
 
-@info "solver with bilevel problem with static stepsize"
+    @info "solver with bilevel problem with static stepsize"
 
     sol, numit, record_staBiM = adaptive_bilevel_static(
         zeros(n),
@@ -127,7 +135,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
     to_plot = Dict(
         "AdaBilevel-LS" => concat_dicts(record_Alg1LS |> subsample(100)),
         "staBiM" => concat_dicts(record_staBiM |> subsample(100)),
-        )
+    )
 
     @info "Plotting"
 
@@ -144,7 +152,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_res",".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_res.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -159,7 +167,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_cost", ".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_cost.pdf"))
 
     plot(
         title = "Quadratic upper level",
@@ -174,26 +182,25 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
             label = k,
         )
     end
-    savefig(string("convergence_Linverse_gamma", ".pdf"))
+    savefig(joinpath(@__DIR__, "convergence_Linverse_gamma.pdf"))
 
 
     r = pf
 
     @info "Exporting plot data"
 
-    save_labels = Dict(
-        "AdaBilevel-LS" => "AdaBilevel-LS",
-        "staBiM" => "staBiM",
-    )
+    save_labels = Dict("AdaBilevel-LS" => "AdaBilevel-LS", "staBiM" => "staBiM")
 
 
     for k in keys(to_plot)
         d = length(to_plot[k][:grad_evals_total])
         rr = Int(ceil(d / 80)) # keeping at most 50 data points
-        output = [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./ max(1.0, optimum) ]
+        output =
+            [to_plot[k][:grad_evals_total] (abs.(to_plot[k][:objective1] .- optimum)) ./
+                                           max(1.0, optimum)]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n-$(r)-$(pf).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "uppercost", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "uppercost", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -207,7 +214,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
         output = [to_plot[k][:grad_evals_total] max.(1e-14, to_plot[k][:norm_gradf2])]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n-$(r)-$(pf).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "loweropt", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "loweropt", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -220,7 +227,7 @@ function run_Linverse_sim(; seed = 3, m = 400, n =  1000, pf = 5, r = 40, tol = 
         output = [1:d to_plot[k][:gamma]]
         red_output = output[1:rr:end, :]
         filename = "$(save_labels[k])-$m-$n-$(r)-$(pf).txt"
-        filepath = joinpath(@__DIR__,"plotdata", "gamma", filename)
+        filepath = joinpath(@__DIR__, "plotdata", "gamma", filename)
         mkpath(dirname(filepath))
         open(filepath, "w") do io
             writedlm(io, red_output)
@@ -233,16 +240,9 @@ end
 
 
 function main(; maxit = 10_000)
-    col = [
-        (400, 1000, 10),
-        (400, 4000, 40),
-        (400, 10000, 100),
-    ]
+    col = [(400, 1000, 10), (400, 4000, 40), (400, 10000, 100)]
     for (m, n, pf) in col
-        run_Linverse_sim(
-            m = m, n = n, pf = pf, 
-            maxit = maxit, tol = 1e-7
-        )
+        run_Linverse_sim(m = m, n = n, pf = pf, maxit = maxit, tol = 1e-7)
     end
 end
 
@@ -279,10 +279,10 @@ end
 
 
 function (S::obj1)(x)
-    y = try 
+    y = try
         nocount(S.f1)(x) + nocount(S.g1)(x)
-    catch e 
+    catch e
         S.f1(x)
-    end 
+    end
     return y
-end 
+end
