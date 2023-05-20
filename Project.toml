@@ -1,0 +1,7 @@
+name = "AdaBiM"
+authors = ["pylat <p.latafat@gmail.com>"]
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+ProximalCore = "dc4f5ac2-75d1-4f31-931e-60435d74994b"
