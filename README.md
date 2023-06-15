@@ -1,8 +1,7 @@
-# Adaptive Proximal Algorithms for Convex Bilevel optimization
+# Adaptive Proximal Algorithms for Convex Simple Bilevel optimization
 
 This repository contains Julia code for the paper
-[AdaBiM: An adaptive proximal gradient method for structured
-convex bilevel optimization](https://arxiv.org/abs/2305.03559).
+[AdaBiM: An essentially adaptive proximal gradient method for convex simple bilevel optimization](https://arxiv.org/abs/2305.03559).
 
 The problems that can be tackled are of the form 
 
